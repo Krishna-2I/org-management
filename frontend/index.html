@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Org Manager</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="topbar">
+  <span class="brand">Org Manager</span>
+  <nav id="nav" class="nav hidden">
+    <button data-view="dashboard">Dashboard</button>
+    <button data-view="users">Users</button>
+    <button data-view="departments">Departments</button>
+    <button data-view="tasks">Tasks</button>
+    <button id="logout-btn">Log out</button>
+  </nav>
+</header>
+
+<main id="app">
+
+  <section id="view-auth" class="view">
+    <div class="card auth-card">
+      <div class="tabs">
+        <button class="tab active" data-tab="login">Log in</button>
+        <button class="tab" data-tab="register">Register organization</button>
+      </div>
+
+      <form id="login-form" class="form">
+        <label>Email<input type="email" name="email" required></label>
+        <label>Password<input type="password" name="password" required></label>
+        <button type="submit">Log in</button>
+        <p class="error" id="login-error"></p>
+      </form>
+
+      <form id="register-form" class="form hidden">
+        <label>Organization name<input type="text" name="org_name" required></label>
+        <label>Your name<input type="text" name="owner_name" required></label>
+        <label>Your email<input type="email" name="owner_email" required></label>
+        <label>Password<input type="password" name="password" minlength="8" required></label>
+        <button type="submit">Create organization</button>
+        <p class="error" id="register-error"></p>
+      </form>
+    </div>
+  </section>
+
+  <section id="view-dashboard" class="view hidden">
+    <h1>Dashboard</h1>
+    <div id="dashboard-content" class="grid"></div>
+  </section>
+
+  <section id="view-users" class="view hidden">
+    <div class="view-head">
+      <h1>Users</h1>
+      <button id="new-user-btn">New user</button>
+    </div>
+    <div class="filters">
+      <input type="search" id="user-search" placeholder="Search name or email">
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Department</th><th>Status</th><th></th></tr></thead>
+      <tbody id="users-tbody"></tbody>
+    </table>
+    <div class="pager" id="users-pager"></div>
+  </section>
+
+  <section id="view-departments" class="view hidden">
+    <div class="view-head">
+      <h1>Departments</h1>
+      <button id="new-department-btn">New department</button>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Headcount</th><th></th></tr></thead>
+      <tbody id="departments-tbody"></tbody>
+    </table>
+  </section>
+
+  <section id="view-tasks" class="view hidden">
+    <div class="view-head">
+      <h1>Tasks</h1>
+      <button id="new-task-btn">New task</button>
+    </div>
+    <table class="data-table">
+      <thead><tr><th>Title</th><th>Status</th><th>Priority</th><th>Assignee</th><th>Due</th><th></th></tr></thead>
+      <tbody id="tasks-tbody"></tbody>
+    </table>
+    <div class="pager" id="tasks-pager"></div>
+  </section>
+
+</main>
+
+<div id="modal-root"></div>
+
+<script src="app.js"></script>
+</body>
+</html>
