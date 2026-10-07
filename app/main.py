@@ -1,5 +1,9 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
+from fastapi.staticfiles import StaticFiles
 
 from app.api.error_handlers import register_error_handlers
 from app.api.middleware import RequestContextMiddleware
@@ -25,6 +29,20 @@ def create_app() -> FastAPI:
 
     for router in (organizations.router, departments.router, users.router, tasks.router, auth.router, stats.router):
         app.include_router(router, prefix="/api/v1")
+
+    frontend_dir = Path(__file__).resolve().parent.parent / "frontend"
+
+    @app.get("/")
+    async def root():
+        return FileResponse(frontend_dir / "index.html")
+
+    @app.get("/app.js")
+    async def app_js():
+        return FileResponse(frontend_dir / "app.js")
+
+    @app.get("/styles.css")
+    async def styles_css():
+        return FileResponse(frontend_dir / "styles.css")
 
     @app.get("/health")
     def health():

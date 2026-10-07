@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8000/api/v1";
+const API_BASE = window.location.origin + "/api/v1";
 
 const state = {
   accessToken: localStorage.getItem("access_token") || null,
@@ -18,7 +18,8 @@ function showToast(message) {
 
 async function apiFetch(path, options = {}, retry = true) {
   const headers = options.headers || {};
-  if (state.accessToken) headers["Authorization"] = `Bearer ${state.accessToken}`;
+  if (state.accessToken)
+    headers["Authorization"] = `Bearer ${state.accessToken}`;
   if (options.body && !(options.body instanceof URLSearchParams)) {
     headers["Content-Type"] = "application/json";
   }
@@ -72,7 +73,9 @@ function clearTokens() {
 }
 
 function showView(name) {
-  document.querySelectorAll(".view").forEach((el) => el.classList.add("hidden"));
+  document
+    .querySelectorAll(".view")
+    .forEach((el) => el.classList.add("hidden"));
   document.getElementById(`view-${name}`).classList.remove("hidden");
   document.querySelectorAll(".nav button[data-view]").forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.view === name);
@@ -86,9 +89,15 @@ function showView(name) {
 
 function applyRoleVisibility() {
   const role = state.me?.role;
-  document.getElementById("new-department-btn")?.classList.toggle("hidden", role !== "owner");
-  document.getElementById("new-user-btn")?.classList.toggle("hidden", role === "employee");
-  document.getElementById("new-task-btn")?.classList.toggle("hidden", role === "employee");
+  document
+    .getElementById("new-department-btn")
+    ?.classList.toggle("hidden", role !== "owner");
+  document
+    .getElementById("new-user-btn")
+    ?.classList.toggle("hidden", role === "employee");
+  document
+    .getElementById("new-task-btn")
+    ?.classList.toggle("hidden", role === "employee");
 }
 
 async function loadDashboard() {
@@ -97,13 +106,22 @@ async function loadDashboard() {
   try {
     const data = await apiFetch("/stats/overview");
     const roleRows = Object.entries(data.users_by_role)
-      .map(([role, count]) => `<div class="stat-row"><span>${role}</span><span>${count}</span></div>`)
+      .map(
+        ([role, count]) =>
+          `<div class="stat-row"><span>${role}</span><span>${count}</span></div>`,
+      )
       .join("");
     const statusRows = Object.entries(data.tasks_by_status)
-      .map(([status, count]) => `<div class="stat-row"><span>${status}</span><span>${count}</span></div>`)
+      .map(
+        ([status, count]) =>
+          `<div class="stat-row"><span>${status}</span><span>${count}</span></div>`,
+      )
       .join("");
     const deptRows = data.departments
-      .map((d) => `<div class="stat-row"><span>${d.name}</span><span>${d.headcount}</span></div>`)
+      .map(
+        (d) =>
+          `<div class="stat-row"><span>${d.name}</span><span>${d.headcount}</span></div>`,
+      )
       .join("");
     container.innerHTML = `
       <div class="stat-card"><h3>Users by role</h3>${roleRows || "No data"}</div>
@@ -133,14 +151,16 @@ async function loadUsers() {
           <td>${u.department_id ?? "-"}</td>
           <td><span class="badge ${u.is_active ? "active" : "inactive"}">${u.is_active ? "active" : "inactive"}</span></td>
           <td>${u.is_active && u.id !== state.me.id ? `<button data-deactivate="${u.id}">Deactivate</button>` : ""}</td>
-        </tr>`
+        </tr>`,
       )
       .join("");
 
     tbody.querySelectorAll("[data-deactivate]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         try {
-          await apiFetch(`/users/${btn.dataset.deactivate}/deactivate`, { method: "POST" });
+          await apiFetch(`/users/${btn.dataset.deactivate}/deactivate`, {
+            method: "POST",
+          });
           showToast("User deactivated");
           loadUsers();
         } catch (err) {
@@ -169,14 +189,16 @@ async function loadDepartments() {
           <td>${d.name}</td>
           <td>${d.headcount}</td>
           <td>${state.me.role === "owner" ? `<button data-delete-dept="${d.id}">Delete</button>` : ""}</td>
-        </tr>`
+        </tr>`,
       )
       .join("");
 
     tbody.querySelectorAll("[data-delete-dept]").forEach((btn) => {
       btn.addEventListener("click", async () => {
         try {
-          await apiFetch(`/departments/${btn.dataset.deleteDept}`, { method: "DELETE" });
+          await apiFetch(`/departments/${btn.dataset.deleteDept}`, {
+            method: "DELETE",
+          });
           showToast("Department deleted");
           loadDepartments();
         } catch (err) {
@@ -208,7 +230,7 @@ async function loadTasks() {
           <td>${t.assignee_name ?? "-"}</td>
           <td>${t.due_date ?? "-"}</td>
           <td></td>
-        </tr>`
+        </tr>`,
       )
       .join("");
 
@@ -283,7 +305,9 @@ function openModal(title, fields, onSubmit) {
     </div>
   `;
 
-  root.querySelector(".cancel").addEventListener("click", () => (root.innerHTML = ""));
+  root
+    .querySelector(".cancel")
+    .addEventListener("click", () => (root.innerHTML = ""));
   root.querySelector("#modal-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const formData = new FormData(e.target);
@@ -298,29 +322,49 @@ function openModal(title, fields, onSubmit) {
 }
 
 function wireModals() {
-  document.getElementById("new-department-btn")?.addEventListener("click", () => {
-    openModal("New department", [{ label: "Name", name: "name", required: true }], async (payload) => {
-      await apiFetch("/departments", { method: "POST", body: JSON.stringify(payload) });
-      showToast("Department created");
-      loadDepartments();
+  document
+    .getElementById("new-department-btn")
+    ?.addEventListener("click", () => {
+      openModal(
+        "New department",
+        [{ label: "Name", name: "name", required: true }],
+        async (payload) => {
+          await apiFetch("/departments", {
+            method: "POST",
+            body: JSON.stringify(payload),
+          });
+          showToast("Department created");
+          loadDepartments();
+        },
+      );
     });
-  });
 
   document.getElementById("new-user-btn")?.addEventListener("click", () => {
-    const roleOptions = state.me.role === "owner" ? ["employee", "manager", "owner"] : ["employee"];
+    const roleOptions =
+      state.me.role === "owner"
+        ? ["employee", "manager", "owner"]
+        : ["employee"];
     openModal(
       "New user",
       [
         { label: "Full name", name: "full_name", required: true },
         { label: "Email", name: "email", type: "email", required: true },
-        { label: "Password", name: "password", type: "password", required: true },
+        {
+          label: "Password",
+          name: "password",
+          type: "password",
+          required: true,
+        },
         { label: "Role", name: "role", type: "select", options: roleOptions },
       ],
       async (payload) => {
-        await apiFetch("/users", { method: "POST", body: JSON.stringify(payload) });
+        await apiFetch("/users", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
         showToast("User created");
         loadUsers();
-      }
+      },
     );
   });
 
@@ -331,15 +375,24 @@ function wireModals() {
         { label: "Title", name: "title", required: true },
         { label: "Description", name: "description" },
         { label: "Assignee user id", name: "assignee_id" },
-        { label: "Priority", name: "priority", type: "select", options: ["low", "medium", "high"] },
+        {
+          label: "Priority",
+          name: "priority",
+          type: "select",
+          options: ["low", "medium", "high"],
+        },
       ],
       async (payload) => {
-        if (payload.assignee_id) payload.assignee_id = Number(payload.assignee_id);
+        if (payload.assignee_id)
+          payload.assignee_id = Number(payload.assignee_id);
         else delete payload.assignee_id;
-        await apiFetch("/tasks", { method: "POST", body: JSON.stringify(payload) });
+        await apiFetch("/tasks", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
         showToast("Task created");
         loadTasks();
-      }
+      },
     );
   });
 }
@@ -360,60 +413,77 @@ async function enterApp() {
 
 function showAuthView() {
   document.getElementById("nav").classList.add("hidden");
-  document.querySelectorAll(".view").forEach((el) => el.classList.add("hidden"));
+  document
+    .querySelectorAll(".view")
+    .forEach((el) => el.classList.add("hidden"));
   document.getElementById("view-auth").classList.remove("hidden");
 }
 
 function wireAuth() {
   document.querySelectorAll(".tab").forEach((tab) => {
     tab.addEventListener("click", () => {
-      document.querySelectorAll(".tab").forEach((t) => t.classList.remove("active"));
+      document
+        .querySelectorAll(".tab")
+        .forEach((t) => t.classList.remove("active"));
       tab.classList.add("active");
-      document.getElementById("login-form").classList.toggle("hidden", tab.dataset.tab !== "login");
-      document.getElementById("register-form").classList.toggle("hidden", tab.dataset.tab !== "register");
+      document
+        .getElementById("login-form")
+        .classList.toggle("hidden", tab.dataset.tab !== "login");
+      document
+        .getElementById("register-form")
+        .classList.toggle("hidden", tab.dataset.tab !== "register");
     });
   });
 
-  document.getElementById("login-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const errorEl = document.getElementById("login-error");
-    errorEl.textContent = "";
-    const formData = new FormData(e.target);
-    try {
-      const response = await fetch(`${API_BASE}/auth/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({ username: formData.get("email"), password: formData.get("password") }),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error?.message || "Login failed");
-      setTokens(data.access_token, data.refresh_token);
-      enterApp();
-    } catch (err) {
-      errorEl.textContent = err.message;
-    }
-  });
+  document
+    .getElementById("login-form")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errorEl = document.getElementById("login-error");
+      errorEl.textContent = "";
+      const formData = new FormData(e.target);
+      try {
+        const response = await fetch(`${API_BASE}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: new URLSearchParams({
+            username: formData.get("email"),
+            password: formData.get("password"),
+          }),
+        });
+        const data = await response.json();
+        if (!response.ok)
+          throw new Error(data?.error?.message || "Login failed");
+        setTokens(data.access_token, data.refresh_token);
+        enterApp();
+      } catch (err) {
+        errorEl.textContent = err.message;
+      }
+    });
 
-  document.getElementById("register-form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const errorEl = document.getElementById("register-error");
-    errorEl.textContent = "";
-    const formData = new FormData(e.target);
-    const payload = Object.fromEntries(formData.entries());
-    try {
-      const response = await fetch(`${API_BASE}/organizations/register`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data?.error?.message || "Registration failed");
-      showToast("Organization created, please log in");
-      document.querySelector('.tab[data-tab="login"]').click();
-    } catch (err) {
-      errorEl.textContent = err.message;
-    }
-  });
+  document
+    .getElementById("register-form")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const errorEl = document.getElementById("register-error");
+      errorEl.textContent = "";
+      const formData = new FormData(e.target);
+      const payload = Object.fromEntries(formData.entries());
+      try {
+        const response = await fetch(`${API_BASE}/organizations/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+        const data = await response.json();
+        if (!response.ok)
+          throw new Error(data?.error?.message || "Registration failed");
+        showToast("Organization created, please log in");
+        document.querySelector('.tab[data-tab="login"]').click();
+      } catch (err) {
+        errorEl.textContent = err.message;
+      }
+    });
 }
 
 function wireNav() {
@@ -424,7 +494,10 @@ function wireNav() {
   document.getElementById("logout-btn").addEventListener("click", async () => {
     try {
       if (state.refreshToken) {
-        await apiFetch("/auth/logout", { method: "POST", body: JSON.stringify({ refresh_token: state.refreshToken }) });
+        await apiFetch("/auth/logout", {
+          method: "POST",
+          body: JSON.stringify({ refresh_token: state.refreshToken }),
+        });
       }
     } catch {
       clearTokens();
@@ -433,10 +506,13 @@ function wireNav() {
     showAuthView();
   });
 
-  document.getElementById("user-search").addEventListener("input", debounce(() => {
-    state.usersPage = 1;
-    loadUsers();
-  }, 350));
+  document.getElementById("user-search").addEventListener(
+    "input",
+    debounce(() => {
+      state.usersPage = 1;
+      loadUsers();
+    }, 350),
+  );
 }
 
 function debounce(fn, delay) {
